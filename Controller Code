@@ -1,0 +1,1144 @@
+/* 
+
+Stree RSTD-MODE test code
+by team Stree, AI Social Humanoid Robot
+ECE DEPT, PES University
+
+This code is for the ristricted mode opertaion only. 
+
+Modified On 8th MAR 2021
+@Gopalkrishna Mahale
+gkm.hello@gmail.com
+
+*/
+
+#include <Wire.h>
+#include <SPI.h>
+#include <Adafruit_PWMServoDriver.h>
+#include <Servo.h>
+#include <Adafruit_MLX90614.h>
+
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+Adafruit_MLX90614 mlx = Adafruit_MLX90614();
+
+#define DUMP_REGS
+#define SERVOMIN  125 // this is the 'minimum' pulse length count (out of 4096)
+#define SERVOMAX  575 // this is the 'maximum' pulse length count (out of 4096)
+#define MQ3Digital 10
+#define MQ3Analog A1
+#define MQ6Analog A0
+
+int servoPin = 9;
+int servoPos = 90;
+const int stepPin = 3; 
+const int dirPin = 4; 
+const int stepPinLR = 5; 
+const int dirPinLR = 6; 
+const int stepsPerRevolution =150;
+int stepDelay=1000;
+uint8_t servonum = 0;
+int pos= 0;
+int MQ6Value;
+int MQ3Value;
+int TempData;
+Servo myServo;
+
+
+void setup() {
+  
+  Serial.begin(115200);
+  pwm.begin();
+  mlx.begin();
+  pwm.setPWMFreq(60);
+  myServo.attach(servoPin);
+  
+  pinMode(stepPin, OUTPUT); 
+  pinMode(dirPin, OUTPUT);
+  pinMode(stepPinLR, OUTPUT); 
+  pinMode(dirPinLR, OUTPUT);
+  pinMode(MQ3Digital, INPUT);
+  pinMode(MQ3Analog, INPUT);
+  pinMode(MQ6Analog, INPUT);
+
+  delay(1000);
+  Serial.println(" Connected to Stree Humanoid Robot Sucessfully ");
+  delay(1000);
+  Serial.println(" !..DEF MOTORS POS..!");
+  delay(1000);
+  initial_position();
+  delay(3000);
+  Serial.println("!..DEF MOTORS POS SUCESSFUL..!");
+  delay(1000);
+  Serial.println("GOOD TO GO");
+  delay(1000);
+  
+  myServo.write(90);
+  
+  digitalWrite(dirPin, HIGH);
+  for(int x = 0; x < stepsPerRevolution; x++)
+  {
+    digitalWrite(stepPin, HIGH);
+    delayMicroseconds(stepDelay);
+    digitalWrite(stepPin, LOW);
+    delayMicroseconds(stepDelay);
+  }
+  delay(3000); // Wait a second
+  
+}
+
+void loop() {
+  
+  while(Serial.available() == 0);
+  
+  int val = Serial.read() - '0';
+
+  if (val == 1)  
+  {
+    
+  initial_position();
+  delay(1000);
+
+  }
+  
+  else if (val == 2)  
+  {
+    
+  SleepMode();
+  
+  }
+
+  else if (val == 3)  
+  {
+
+  Happiness();  
+
+  }
+  
+  else if (val == 4)  
+  {
+
+  Sadness();
+  
+  }
+
+  else if (val == 5)  
+  {
+
+  Disgust();
+ 
+  }
+
+  else if (val == 6)  
+  {
+
+  Surprise();
+  
+  }
+
+  else if (val == 7)
+  {
+  
+  Contempt();
+  
+  }
+
+  else if (val == 8)
+  {
+  
+  Anger();
+  
+  }
+
+  else if (val == 10)
+  {
+  
+  Fear();
+  
+  }
+
+  else if (val == 9)
+  {
+  
+  SpeakQuick();
+
+  }
+
+  else if (val == 11)
+  {
+  
+  SpeakSlow();
+  
+  }
+
+  else if (val == 12)
+  {
+  
+  Laugh();
+  
+  }
+
+  else if (val == 13)
+  {
+  
+  ReadTemp();
+  
+  }
+
+  else if (val == 14)
+  {
+  
+  DetectTemp();
+  
+  }
+
+  else if (val == 15)
+  {
+  
+  AlcoRead();
+  
+  }
+
+  else if (val == 16)
+  {
+  
+  AlcoDetect();
+  
+  }
+
+  else if (val == 17)
+  {
+  
+  LPGRead();
+  
+  }
+
+  else if (val == 18)
+  {
+  
+  LPGDetect();
+  
+  }
+
+  else if (val == 19)
+  {
+
+  HeadSweep();
+  
+  }
+
+  else if (val == 20)
+  {
+
+  WakeUp();
+  
+  }
+
+  else if (val == 21)
+  {
+
+  Blink();
+  
+  }
+  
+  else {
+  Serial.println(" DONE! ");
+  }
+  }
+
+  void setServo(int servo, int angle)
+  {
+  int duty;
+  duty = map(angle, 0, 180, SERVOMIN, SERVOMAX);
+  pwm.setPWM(servo, 0, duty);
+  }
+
+void initial_position()
+
+{  
+  setServo(0, 86); // EYE BROW RIGHT
+  setServo(1, 180); // JAW LEFT
+  setServo(2, 0); // JAW RIGHT
+  setServo(3, 90); // UPPER LIP
+  setServo(4, 110); // UP LEFT EYE CLOSURE
+  setServo(5, 30); // LEFT EYE UP
+  setServo(6, 90); // RIGHT EYE UP
+  setServo(7, 75); // UP RIGHT EYE CLOSURE
+  setServo(8, 90); // RIGHT EYE LOWER
+  setServo(9, 120); // LOW RIGHT EYE CLOSURE
+  setServo(10, 80); // LOW LEFT EYE CLOSURE
+  setServo(11, 100); // SIGNAL CR
+  setServo(12, 75); // SIGNAL CL
+  setServo(13, 90); // TONGUE
+  setServo(14, 90); // LEFT EYE LOWER
+  setServo(15, 86); // EYE BROW LEFT
+}
+
+void ReadTemp()
+{
+  
+  Serial.println(mlx.readObjectTempF());
+  delay(100);
+ 
+}
+
+
+void DetectTemp()
+{
+
+  TempData = mlx.readObjectTempF();
+ 
+  if (TempData <= 100) 
+  {
+  Serial.println(" 000 ");
+  } 
+  else if (TempData >= 0)
+  {
+    Serial.println(" 111 ");
+  }
+  else 
+  {
+    Serial.println(" NIL ");
+  }
+}
+
+void AlcoRead()
+{
+  
+  bool digital = digitalRead(MQ3Digital);
+  MQ3Value = analogRead(MQ3Analog);
+
+  Serial.print(MQ3Value);
+
+}
+
+
+void AlcoDetect()
+{
+  bool digital = digitalRead(MQ3Digital);
+  MQ3Value = analogRead(MQ3Analog);
+
+  if (digital == 0) {
+  Serial.println(" 111 ");
+  } 
+  else
+  {
+    Serial.println(" 000 ");
+  }
+}
+
+void LPGRead()
+{
+
+ MQ6Value =analogRead(MQ6Analog);
+ Serial.println(MQ3Value);
+  
+} 
+
+void LPGDetect()
+{
+
+ MQ6Value =analogRead(MQ6Analog);
+
+ if (MQ6Value >> 200) {
+  Serial.println(" 111 ");
+  } 
+  else
+  {
+    Serial.println(" 000 ");
+  }
+  
+}
+
+// Expressions
+
+void WakeUp()
+{
+
+  myServo.write(90);
+  digitalWrite(dirPin, HIGH);
+  for(int x = 0; x < stepsPerRevolution; x++)
+  {
+    digitalWrite(stepPin, HIGH);
+    delayMicroseconds(stepDelay);
+    digitalWrite(stepPin, LOW);
+    delayMicroseconds(stepDelay);
+  }
+  delay(3000); // Wait a second
+  
+}
+
+void SleepMode()
+{
+
+  myServo.write(0);
+  digitalWrite(dirPin, LOW);
+  delay(2000); // Wait a second
+  for(int x = 0; x < stepsPerRevolution; x++)
+  {
+    digitalWrite(stepPin, HIGH);
+    delayMicroseconds(stepDelay);
+    digitalWrite(stepPin, LOW);
+    delayMicroseconds(stepDelay);
+  }
+  delay(3000); // Wait a second
+  
+}
+
+void HeadSweep()
+{
+  
+  digitalWrite(dirPinLR, HIGH);
+ 
+  for(int x = 0; x < stepsPerRevolution; x++)
+  {
+    digitalWrite(stepPinLR, HIGH);
+    delayMicroseconds(stepDelay);
+    digitalWrite(stepPinLR, LOW);
+    delayMicroseconds(stepDelay);
+  }
+
+  delay(3000); // Wait a second
+  
+  digitalWrite(dirPinLR, LOW);
+  delay(2000); // Wait a second
+  for(int x = 0; x < stepsPerRevolution; x++)
+  {
+    digitalWrite(stepPinLR, HIGH);
+    delayMicroseconds(stepDelay);
+    digitalWrite(stepPinLR, LOW);
+    delayMicroseconds(stepDelay);
+  }
+  delay(3000); // Wait a second
+
+}
+
+
+void Happiness()
+{
+
+JawDown();
+CheekboneUp();
+EyeBrowUp();
+EyeClosureOpen();
+
+}
+
+
+void Sadness()
+{
+
+JawUp();
+CheekboneDown();
+EyeClosureOpen();
+EyeBrowDown();
+
+}
+
+void Disgust()
+{
+
+JawDown();
+UpperLipUp();
+CheekboneMid();
+EyeBrowDown();
+EyeMid();
+EyeClosureOpen();
+
+}
+
+void Surprise()
+{
+
+JawDown();
+CheekboneMid();
+EyeBrowDown();
+EyeMid();
+EyeClosureOpen();
+delay(500);
+EyeClosureClose();
+delay(500);
+EyeClosureOpen();
+delay(500);
+EyeClosureClose();
+delay(500);
+EyeClosureOpen();
+delay(500);
+EyeClosureClose();
+delay(500);
+EyeClosureOpen();
+delay(500);
+
+}
+
+void Contempt()
+{
+
+JawUp();
+LeftCheekboneUp();
+RightCheekboneMid();
+EyeClosureOpen();
+EyeMid();
+EyeBrowMid();
+
+}
+
+void Anger()
+{
+
+JawUp();
+UpperLipUp();
+CheekboneMid();
+EyeBrowDown();
+EyeMid();
+EyeClosureOpen();
+
+}
+
+void Fear()
+{
+
+UpperLipDown();
+CheekboneDown();
+EyeBrowMid();
+EyeMid();
+EyeClosureOpen();
+delay(1000);
+EyeClosureClose();
+delay(1000);
+EyeClosureOpen();
+delay(1000);
+EyeClosureClose();
+delay(1000);
+EyeClosureOpen();
+delay(1000);
+JawMid();
+delay(1000);
+JawUp();
+delay(1000);
+JawMid();
+delay(1000);
+JawUp();
+delay(1000);
+JawMid();
+delay(1000);
+
+}
+
+void SpeakQuick()
+{
+
+JawDown();
+UpperLipDown();
+CheekboneMid();
+EyeBrowMid();
+EyeMid();
+delay(1000);
+JawUp();
+delay(1000);
+JawDown();
+delay(500);
+EyeClosureOpen();
+delay(500);
+EyeClosureClose();
+delay(500);
+EyeClosureOpen();
+delay(500);
+
+}
+
+void SpeakSlow()
+{
+
+JawDown();
+UpperLipDown();
+EyeClosureOpen();
+CheekboneMid();
+EyeBrowMid();
+EyeMid();
+delay(1000);
+JawUp();
+delay(1000);
+JawDown();
+UpperLipMid();
+delay(500);
+JawUp();
+delay(500);
+EyeClosureClose();
+delay(500);
+EyeClosureOpen();
+delay(500);
+EyeClosureClose();
+delay(500);
+EyeClosureOpen();
+delay(500);
+
+}
+
+void Laugh()
+{
+  
+CheekboneUp();
+EyeBrowUp();
+EyeClosureOpen();
+EyeClosureOpen();
+delay(1000);
+EyeClosureClose();
+delay(1000);
+EyeClosureOpen();
+delay(1000);
+JawMid();
+delay(1000);
+JawUp();
+delay(1000);
+JawMid();
+delay(1000);
+JawUp();
+delay(1000);
+JawMid();
+delay(1000);
+
+}
+
+void Blink()
+{
+CheekboneMid();
+EyeBrowMid();
+EyeClosureOpen();
+delay(1000);
+EyeClosureClose();
+delay(1000);
+EyeClosureOpen();
+delay(1000);
+EyeClosureClose();
+delay(1000);
+EyeClosureOpen();
+delay(1000);
+EyeClosureClose();
+delay(1000);
+EyeClosureOpen();
+delay(1000);
+EyeClosureClose();
+delay(1000);
+EyeClosureOpen();
+delay(1000);
+
+}
+
+// Neck Up Down Control
+
+void NeckUp()
+{
+
+}
+
+void NeckDown()
+{
+
+}
+
+// Neck Rotation Control
+
+void NeckRight()
+{
+
+}
+
+void NeckLeft()
+{
+
+digitalWrite(dirPinLR,HIGH);
+
+  for(int x = 0; x < 200; x++) {
+   digitalWrite(stepPinLR,HIGH); 
+   delayMicroseconds(500); 
+   digitalWrite(stepPinLR,LOW); 
+   delayMicroseconds(500); 
+
+}
+}
+
+void NeckMidLR()
+{
+
+digitalWrite(dirPinLR,HIGH);
+
+  for(int x = 0; x < 200; x++) {
+   digitalWrite(stepPinLR,HIGH); 
+   delayMicroseconds(500); 
+   digitalWrite(stepPinLR,LOW); 
+   delayMicroseconds(500); 
+
+}
+}
+
+void NeckMidRight()
+{
+
+digitalWrite(dirPinLR,HIGH);
+
+  for(int x = 0; x < 200; x++) {
+   digitalWrite(stepPinLR,HIGH); 
+   delayMicroseconds(500); 
+   digitalWrite(stepPinLR,LOW); 
+   delayMicroseconds(500); 
+
+}
+}
+
+void NeckMidLeft()
+{
+
+digitalWrite(dirPinLR,HIGH);
+
+  for(int x = 0; x < 200; x++) {
+   digitalWrite(stepPinLR,HIGH); 
+   delayMicroseconds(500); 
+   digitalWrite(stepPinLR,LOW); 
+   delayMicroseconds(500); 
+
+}
+}
+
+// Right Eye Brow Control
+
+void RightEyeBrowUp()
+{
+
+setServo(0, 110);
+ 
+}
+
+
+void RightEyeBrowMid()
+{
+
+setServo(0, 90);
+
+}
+
+void RightEyeBrowDown()
+{
+
+setServo(0, 70);
+
+}
+
+// Left Eye Brow Control
+
+void LeftEyeBrowUp()
+{
+
+setServo(15, 70);
+
+}
+
+void LeftEyeBrowMid()
+{
+
+setServo(15, 90);
+
+}
+
+void LeftEyeBrowDown()
+{
+
+setServo(15, 110);
+
+}
+
+// Both Eye Brow Control
+
+void EyeBrowUp()
+{
+
+setServo(0, 110);
+setServo(15, 70);
+
+}
+
+void EyeBrowMid()
+{
+
+setServo(0, 90);
+setServo(15, 90);
+
+}
+
+void EyeBrowDown()
+{
+
+setServo(0, 70);
+setServo(15, 110);
+
+}
+
+
+void EyeBrowUpDownSlow()
+{
+
+for (pos = 90; pos <= 120; pos += 5) { 
+    setServo(0, pos);
+    setServo(15, pos); 
+}
+
+delay(15);
+
+for (pos = 120; pos >= 60; pos -= 5) { 
+    setServo(0, pos);
+    setServo(15, pos); 
+}
+}
+
+void EyeBrowUpDownFast()
+{
+
+for (pos = 90; pos <= 120; pos += 10) { 
+    setServo(0, pos);
+    setServo(15, pos); 
+}
+
+delay(15);
+
+for (pos = 120; pos >= 60; pos -= 10) { 
+    setServo(0, pos);
+    setServo(15, pos); 
+}
+}
+
+void EyeBrowWave()
+{
+
+for (pos = 90; pos <= 120; pos += 10) { 
+    setServo(0, pos);
+for (pos = 120; pos >= 90; pos -= 10) {    
+    setServo(15, pos); 
+}
+}
+
+delay(15);
+
+for (pos = 120; pos >= 60; pos -= 10) { 
+    setServo(0, pos);
+for (pos = 90; pos <= 120; pos += 10) {
+    setServo(15, pos); 
+}
+}
+}
+
+// Right Eye Control
+
+void RightEyeUp()
+{
+
+setServo(6, 140);
+
+}
+
+void RightEyeCenter()
+{
+
+setServo(6, 90);
+setServo(8, 90);
+
+}
+
+void RightEyeDown()
+{
+
+setServo(6, 60);
+
+}
+
+void RightEyeRight()
+{
+
+setServo(8, 40);
+
+}
+
+void RightEyeLeft()
+{
+
+setServo(8, 130);
+
+}
+
+// Left Eye Control
+
+void LeftEyeUp()
+{
+
+setServo(5, 20);
+
+}
+
+void LeftEyeCenter()
+{
+
+setServo(5, 90);
+setServo(14, 30);
+
+}
+
+void LeftEyeDown()
+{
+
+setServo(5, 170);
+
+}
+
+void LeftEyeRight()
+{
+
+setServo(14, 0);
+
+}
+
+void LeftEyeLeft()
+{
+
+setServo(14, 110);
+
+}
+
+// Both Eye Control
+
+void EyeUp()
+{
+
+setServo(6, 140);
+setServo(5, 20);
+
+}
+
+void EyeMid()
+{
+
+setServo(5, 90);
+setServo(6, 90);
+setServo(8, 90);
+setServo(14, 30);
+
+}
+
+void EyeDown()
+{
+
+setServo(5, 170);
+setServo(6, 60);
+
+}
+
+void EyeRight()
+{
+
+setServo(8, 40);
+setServo(14, 0);
+
+}
+
+void EyeLeft()
+{
+
+setServo(8, 130);
+setServo(14, 110);
+
+}
+
+// Both Eye Closure Control
+
+void EyeClosureOpen()
+{
+
+setServo(4, 40);
+setServo(10, 120);
+setServo(7, 100);
+setServo(9, 60);
+
+}
+
+void EyeClosureClose()
+{
+
+setServo(4, 100);
+setServo(10, 60);
+setServo(7, 45);
+setServo(9, 115);
+
+}
+
+// Right Eye Closure Control
+
+void RightEyeClosureOpen()
+{
+
+setServo(7, 100);
+setServo(9, 60);
+
+}
+
+void RightEyeClosureClose()
+{
+
+setServo(7, 45);
+setServo(9, 115);
+
+}
+
+// Left Eye Closure Control
+
+void LeftEyeClosureOpen()
+{
+
+setServo(4, 40);
+setServo(10, 120);
+
+}
+
+void LeftEyeClosureClose()
+{
+
+setServo(4, 100);
+setServo(10, 60);
+
+}
+
+// Upper Lip
+
+void UpperLipUp()
+{
+
+    setServo(3, 100);
+
+}
+
+void UpperLipMid()
+{
+
+    setServo(3, 95);
+  
+}
+
+void UpperLipDown()
+{
+
+    setServo(3, 90);
+
+}
+
+// Right Cheekbone Control
+
+void RightCheekboneUp()
+{
+
+    setServo(11, 125);
+
+}
+
+void RightCheekboneMid()
+{
+
+    setServo(11, 100);  
+
+}
+
+void RightCheekboneDown()
+{
+
+    setServo(11, 75);
+
+}
+
+// Left Cheekbone Control
+
+void LeftCheekboneUp()
+{
+
+    setServo(12, 50);
+  
+}
+
+void LeftCheekboneMid()
+{
+
+    setServo(12, 75);
+  
+}
+
+void LeftCheekboneDown()
+{
+
+    setServo(12, 95);
+
+}
+
+
+// Both Cheekbone Control
+
+void CheekboneUp()
+{
+
+    setServo(11, 125);
+    setServo(12, 50);
+
+}
+
+void CheekboneMid()
+{
+
+    setServo(11, 100);
+    setServo(12, 75);
+  
+}
+
+void CheekboneDown()
+{
+
+    setServo(11, 75);
+    setServo(12, 95);
+  
+}
+
+// Jaw Control
+
+void JawUp()
+{
+
+setServo(1, 180);
+setServo(2, 0);
+  
+}
+
+void JawMid()
+{
+
+    setServo(1, 140);
+    setServo(2, 40);
+  
+}
+
+void JawDown()
+{
+
+    setServo(1, 100);
+    setServo(2, 80);
+  
+}
+
+// Tongue Control
+
+void TongueMove()
+{
+
+for (pos = 90; pos <= 95; pos += 5) { 
+    setServo(13, pos);
+  
+}
+
+delay(20);
+
+for (pos = 95; pos >= 85; pos -= 5) { 
+    setServo(13, pos);
+  
+}
+}
